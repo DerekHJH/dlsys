@@ -44,9 +44,16 @@ def parse_mnist(image_filename, label_filename):
                 labels of the examples.  Values should be of type np.uint8 and
                 for MNIST will contain the values 0-9.
     """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    with gzip.open(image_filename, 'rb') as f:
+        magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
+        X = np.frombuffer(f.read(), dtype=np.uint8).astype(np.float32)
+        X = X.reshape(num, rows*cols)
+        X = X / 255.0
+    with gzip.open(label_filename, 'rb') as f:
+        magic, num = struct.unpack(">II", f.read(8))
+        y = np.frombuffer(f.read(), dtype=np.uint8).astype(np.uint8)
+    return X, y
+
 
 
 def softmax_loss(Z, y):
@@ -64,9 +71,7 @@ def softmax_loss(Z, y):
     Returns:
         Average softmax loss over the sample.
     """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    return np.mean(np.log(np.sum(np.exp(Z), axis=1)) - np.choose(y, Z.T))
 
 
 def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):

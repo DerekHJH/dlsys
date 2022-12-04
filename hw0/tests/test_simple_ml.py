@@ -203,3 +203,6 @@ def submit_softmax_regression_epoch_cpp():
     softmax_regression_epoch_cpp(X, y, theta, lr=0.1, batch=200)
     mugrade.submit(np.linalg.norm(theta))
     mugrade.submit(loss_err(X@theta, y))
+
+if __name__ == "__main__":
+    test_softmax_loss()
