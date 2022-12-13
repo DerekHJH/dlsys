@@ -8,10 +8,9 @@ import numpy
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-# NOTE: we will use numpy as the array_api
-# to backup our computations, this line will change in later homeworks
+# NOTE: we will import numpy as the array_api
+# as the backend for our computations, this line will change in later homeworks
 import numpy as array_api
-
 NDArray = numpy.ndarray
 
 
@@ -34,11 +33,9 @@ class CPUDevice(Device):
     def enabled(self):
         return True
 
-
 def cpu():
     """Return cpu device"""
     return CPUDevice()
-
 
 def all_devices():
     """return a list of all available devices"""
@@ -100,10 +97,17 @@ class Op:
 
 
 class TensorOp(Op):
-    """ Op class specialized to output tensors, will be alterate subclasses for other structures """
+    """ Op class specialized to output tensors, will be alternate subclasses for other structures """
 
     def __call__(self, *args):
         return Tensor.make_from_op(self, args)
+
+
+class TensorTupleOp(Op):
+    """Op class specialized to output TensorTuple"""
+
+    def __call__(self, *args):
+        return TensorTuple.make_from_op(self, args)
 
 
 class Value:
@@ -126,7 +130,6 @@ class Value:
         self.cached_data = self.op.compute(
             *[x.realize_cached_data() for x in self.inputs]
         )
-        self.cached_data
         return self.cached_data
 
     def is_leaf(self):
@@ -335,9 +338,10 @@ class Tensor(Value):
             return needle.ops.MulScalar(other)(self)
 
     def __pow__(self, other):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if isinstance(other, Tensor):
+            raise NotImplementedError()
+        else:
+            return needle.ops.PowerScalar(other)(self)
 
     def __sub__(self, other):
         if isinstance(other, Tensor):
