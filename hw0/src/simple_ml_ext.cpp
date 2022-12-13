@@ -32,9 +32,7 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
      *     (None)
      */
 
-    /// BEGIN YOUR CODE
-
-    /// END YOUR CODE
+    
 }
 
 
