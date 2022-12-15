@@ -169,7 +169,7 @@ class BroadcastTo(TensorOp):
     def gradient(self, out_grad, node):
         lhs = node.inputs[0]
         axes = [i for i in range(len(self.shape)) if (i >= len(lhs.shape) or lhs.shape[i] != self.shape[i])]
-        return out_grad.sum(axes=tuple(axes))
+        return out_grad.sum(axes=tuple(axes)).reshape(lhs.shape)
 
 
 def broadcast_to(a, shape):
@@ -200,7 +200,13 @@ class MatMul(TensorOp):
 
     def gradient(self, out_grad, node):
         lhs, rhs = node.inputs
-        return out_grad @ rhs.transpose(), lhs.transpose() @ out_grad
+        retl = out_grad @ rhs.transpose()
+        retr = lhs.transpose() @ out_grad
+        if retl.shape != lhs.shape:
+            retl = retl.sum(axes=tuple(range(len(retl.shape) - len(lhs.shape))))
+        if retr.shape != rhs.shape:
+            retr = retr.sum(axes=tuple(range(len(retr.shape) - len(rhs.shape))))
+        return retl, retr
 
 
 def matmul(a, b):
