@@ -109,7 +109,6 @@ class DivScalar(TensorOp):
         return a / self.scalar
 
     def gradient(self, out_grad, node):
-        lhs = node.inputs[0]
         return out_grad / self.scalar
 
 
@@ -246,7 +245,6 @@ class Exp(TensorOp):
         return array_api.exp(a)
 
     def gradient(self, out_grad, node):
-        lhs = node.inputs[0]
         return out_grad * node
 
 
