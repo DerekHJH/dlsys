@@ -323,12 +323,16 @@ def relu(a):
 
 class LogSumExp(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
+        """
+        Args:
+            axes: Tuple of axes to sum and take the maximum element over. 
+            This uses the same conventions as `needle.ops.Summation()`
+        """
         self.axes = axes
 
     def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        Z_max = array_api.max(Z, axis=self.axes)
+        return array_api.log(array_api.sum(array_api.exp(Z - Z_max), axis=self.axes)) + Z_max
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION

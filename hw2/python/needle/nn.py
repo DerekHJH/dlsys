@@ -120,20 +120,26 @@ class Flatten(Module):
 
 class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        """
+        Applies the rectified linear unit function element-wise:
+        $ReLU(x) = max(0, x)$.
+        """
+        return ops.relu(x)
 
 
 class Sequential(Module):
     def __init__(self, *modules):
+        """
+        Args:
+            *modules - any number of modules of type `needle.nn.Module`
+        """
         super().__init__()
         self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        for module in self.modules:
+            x = module(x)
+        return x
 
 
 class SoftmaxLoss(Module):
