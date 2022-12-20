@@ -135,9 +135,9 @@ class PowerScalar(TensorOp):
         return a ** self.scalar
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        # TODO: self.scaler == 0, and out_grad should appear in the left or right
+        lhs = node.inputs[0]
+        return (self.scalar * lhs ** (self.scalar - 1)) * out_grad
 
 
 def power_scalar(a, scalar):
@@ -223,7 +223,8 @@ class BroadcastTo(TensorOp):
 
     def gradient(self, out_grad, node):
         lhs = node.inputs[0]
-        axes = [i for i in range(len(self.shape)) if (i >= len(lhs.shape) or lhs.shape[i] != self.shape[i])]
+        axes = [-i-1 for i in range(len(self.shape)) if (i >= len(lhs.shape) or lhs.shape[-i-1] != self.shape[-i-1])]
+        axes = sorted([i + len(self.shape) for i in axes])
         return out_grad.sum(axes=tuple(axes)).reshape(lhs.shape)
 
 
@@ -243,7 +244,7 @@ class Summation(TensorOp):
         axes = self.axes
         if isinstance(self.axes, int):
             axes = [axes,]
-        shape = [1 if (self.axes is None or i in axes) else lhs.shape[i] for i in range(len(lhs.shape))]
+        shape = [1 if (axes is None or i in axes) else lhs.shape[i] for i in range(len(lhs.shape))]
         return out_grad.reshape(tuple(shape)).broadcast_to(lhs.shape)
 
 

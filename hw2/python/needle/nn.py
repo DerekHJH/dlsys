@@ -83,18 +83,31 @@ class Identity(Module):
 
 class Linear(Module):
     def __init__(self, in_features, out_features, bias=True, device=None, dtype="float32"):
+        """
+        Applies a linear transformation to the incoming data: $y = xA^T + b$. The input shape is $(N, H_{in})$.
+        The learnable `weight` of shape (`in_features`, `out_features`), whose values is initialized 
+        with the Kaiming Uniform initialization with `fan_in = in_features`
+        The learnable `bias` of shape (`out_features`), whose values should be initialized 
+        with the Kaiming Uniform initialization with `fan_in = out_features`. 
+        Args:
+            in_features: size of each input sample
+            out_features: size of each output sample
+            bias: If set to `False`, the layer will not learn an additive bias
+        """
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = init.kaiming_uniform(in_features, out_features, device=device, dtype=dtype, requires_grad=True)
+        if bias:
+            self.bias = init.kaiming_uniform(out_features, 1, device=device, dtype=dtype, requires_grad=True).reshape((1, self.out_features))
+        else:
+            self.bias = None
 
     def forward(self, X: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.bias is None:
+            return X @ self.weight
+        else:
+            return X @ self.weight + self.bias.broadcast_to((*X.shape[:-1], self.out_features))
 
 
 
