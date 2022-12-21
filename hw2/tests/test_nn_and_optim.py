@@ -1108,4 +1108,4 @@ def submit_mlp_resnet():
     mugrade.submit(train_mnist_1(550, 1, ndl.optim.SGD, 0.01, 0.01, 7))
 
 if __name__ == "__main__":
-    test_nn_layernorm_forward_2()
+    test_nn_batchnorm_running_mean_1()

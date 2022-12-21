@@ -152,16 +152,33 @@ class SoftmaxLoss(Module):
 
 class BatchNorm1d(Module):
     def __init__(self, dim, eps=1e-5, momentum=0.1, device=None, dtype="float32"):
-        
+        """
+        Args:
+            dim: input dimension
+            eps: a value added to the denominator for numerical stability.
+            momentum: the value used for the running mean and running variance computation.
+        """
         super().__init__()
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        
-
+        self.weight = init.ones(dim, requires_grad=True) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = init.zeros(dim, requires_grad=True) # the learnable bias of shape `dim`, elements initialized to 0.
+        self.running_mean = init.zeros(dim, requires_grad=True) # the running mean used at evaluation time, elements initialized to 0.
+        self.running_var = init.ones(dim, requires_grad=True) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
 
     def forward(self, x: Tensor) -> Tensor:
-        pass
+        Ex = ops.summation(x, axes = 0) / x.shape[0]
+        self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * Ex
+        Ex = Ex.reshape((1, x.shape[1])).broadcast_to(x.shape)
+        Varx = ops.summation((x - Ex) ** 2, axes = 0) / x.shape[0]
+        self.running_var = (1 - self.momentum) * self.running_var + self.momentum * Varx
+        Varx = Varx.reshape((1, x.shape[1])).broadcast_to(x.shape)
+        if self.training:
+            return self.weight.broadcast_to(x.shape) * (x - Ex) / (Varx + self.eps) ** 0.5 + self.bias.broadcast_to(x.shape)
+        else:
+            return (x - self.running_mean) / (self.running_var + self.eps) ** 0.5
+        
 
 
 class LayerNorm1d(Module):
@@ -186,32 +203,38 @@ class LayerNorm1d(Module):
         self.bias = init.zeros(dim, requires_grad=True) # the learnable bias of shape `dim`, elements initialized to 0.
 
     def forward(self, x: Tensor) -> Tensor:
-        shape = (x.shape[0], 1)
-        Ex = (ops.summation(x, axes = 1) / self.dim).reshape(shape).broadcast_to(x.shape)
-        Varx = (ops.summation((x - Ex) ** 2, axes = 1) / self.dim).reshape(shape).broadcast_to(x.shape)
+        Ex = (ops.summation(x, axes = 1) / self.dim).reshape((x.shape[0], 1)).broadcast_to(x.shape)
+        Varx = (ops.summation((x - Ex) ** 2, axes = 1) / self.dim).reshape((x.shape[0], 1)).broadcast_to(x.shape)
         return self.weight.broadcast_to(x.shape) * (x - Ex) / (Varx + self.eps) ** 0.5 + self.bias.broadcast_to(x.shape)
 
 
 class Dropout(Module):
     def __init__(self, p = 0.5):
+        """
+        Args:
+            p: the probability of an element to be zeroed.
+        """
         super().__init__()
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.training:
+            one_zero_matrix = Tensor(1 - np.random.binomial(1, self.p, x.shape))
+            x = x / (1 - self.p) * one_zero_matrix
+        return x
 
 
 class Residual(Module):
     def __init__(self, fn: Module):
+        """
+        Args:
+            fn: module of type `needle.nn.Module`
+        """
         super().__init__()
         self.fn = fn
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return self.fn(x) + x
 
 
 
