@@ -1108,4 +1108,4 @@ def submit_mlp_resnet():
     mugrade.submit(train_mnist_1(550, 1, ndl.optim.SGD, 0.01, 0.01, 7))
 
 if __name__ == "__main__":
-    test_optim_sgd_vanilla_1()
+    test_optim_adam_weight_decay_1()

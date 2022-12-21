@@ -31,9 +31,9 @@ class SGD(Optimizer):
         self.weight_decay = weight_decay
 
     def step(self):
-        self.u = {p: self.momentum * self.u.get(p, ndl.init.zeros(*p.shape)).data + (1 - self.momentum) * p.grad.data for p in self.params}
+        self.u = {p: self.momentum * self.u.get(p, ndl.init.zeros(*p.shape)).data + (1 - self.momentum) * (p.grad.data + self.weight_decay * p.data) for p in self.params}
         for p in self.params:
-            p.data -= self.lr * (self.u[p].data + self.weight_decay * p.data)
+            p.data -= self.lr * self.u[p].data
 
 
 class Adam(Optimizer):
@@ -46,6 +46,16 @@ class Adam(Optimizer):
         eps=1e-8,
         weight_decay=0.0,
     ):
+        """
+        Args:
+            params: iterable of parameters of type `needle.nn.Parameter` to optimize
+            lr: (*float*) - learning rate
+            beta1: (*float*) - coefficient used for computing running average of gradient
+            beta2: (*float*) - coefficient used for computing running average of square of gradient
+            eps: (*float*) - term added to the denominator to improve numerical stability
+            bias_correction: - whether to use bias correction for $u, v$
+            weight_decay: (*float*) - weight decay (L2 penalty)
+        """
         super().__init__(params)
         self.lr = lr
         self.beta1 = beta1
@@ -58,6 +68,10 @@ class Adam(Optimizer):
         self.v = {}
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.t += 1
+        self.m = {p: self.beta1 * self.m.get(p, ndl.init.zeros(*p.shape)).data + (1 - self.beta1) * (p.grad.data + self.weight_decay * p.data) for p in self.params}
+        self.v = {p: self.beta2 * self.v.get(p, ndl.init.zeros(*p.shape)).data + (1 - self.beta2) * (p.grad.data + self.weight_decay * p.data) ** 2 for p in self.params}
+        m_hat = {p: self.m[p].data / (1 - self.beta1 ** self.t) for p in self.params}
+        v_hat = {p: self.v[p].data / (1 - self.beta2 ** self.t) for p in self.params}
+        for p in self.params:
+            p.data -= self.lr * m_hat[p].data / (v_hat[p].data ** 0.5 + self.eps)
