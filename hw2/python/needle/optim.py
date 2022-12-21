@@ -17,6 +17,13 @@ class Optimizer:
 
 class SGD(Optimizer):
     def __init__(self, params, lr=0.01, momentum=0.0, weight_decay=0.0):
+        """
+        Args:
+            params: iterable of parameters of type `needle.nn.Parameter` to optimize
+            lr: (*float*) - learning rate
+            momentum: (*float*) - momentum factor
+            weight_decay: (*float*) - weight decay (L2 penalty)
+        """
         super().__init__(params)
         self.lr = lr
         self.momentum = momentum
@@ -24,9 +31,9 @@ class SGD(Optimizer):
         self.weight_decay = weight_decay
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.u = {p: self.momentum * self.u.get(p, ndl.init.zeros(*p.shape)).data + (1 - self.momentum) * p.grad.data for p in self.params}
+        for p in self.params:
+            p.data -= self.lr * (self.u[p].data + self.weight_decay * p.data)
 
 
 class Adam(Optimizer):

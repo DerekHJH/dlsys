@@ -97,9 +97,9 @@ class Linear(Module):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = init.kaiming_uniform(in_features, out_features, device=device, dtype=dtype, requires_grad=True)
+        self.weight = Parameter(init.kaiming_uniform(in_features, out_features, device=device, dtype=dtype, requires_grad=True))
         if bias:
-            self.bias = init.kaiming_uniform(out_features, 1, device=device, dtype=dtype, requires_grad=True).reshape((1, self.out_features))
+            self.bias = Parameter(init.kaiming_uniform(out_features, 1, device=device, dtype=dtype, requires_grad=True).reshape((1, self.out_features)))
         else:
             self.bias = None
 
@@ -162,8 +162,8 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        self.weight = init.ones(dim, requires_grad=True) # the learnable weights of size `dim`, elements initialized to 1
-        self.bias = init.zeros(dim, requires_grad=True) # the learnable bias of shape `dim`, elements initialized to 0.
+        self.weight = Parameter(init.ones(dim, requires_grad=True)) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = Parameter(init.zeros(dim, requires_grad=True)) # the learnable bias of shape `dim`, elements initialized to 0.
         self.running_mean = init.zeros(dim, requires_grad=True) # the running mean used at evaluation time, elements initialized to 0.
         self.running_var = init.ones(dim, requires_grad=True) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
 
@@ -199,8 +199,8 @@ class LayerNorm1d(Module):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        self.weight = init.ones(dim, requires_grad=True) # the learnable weights of size `dim`, elements initialized to 1
-        self.bias = init.zeros(dim, requires_grad=True) # the learnable bias of shape `dim`, elements initialized to 0.
+        self.weight = Parameter(init.ones(dim, requires_grad=True)) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = Parameter(init.zeros(dim, requires_grad=True)) # the learnable bias of shape `dim`, elements initialized to 0.
 
     def forward(self, x: Tensor) -> Tensor:
         Ex = (ops.summation(x, axes = 1) / self.dim).reshape((x.shape[0], 1)).broadcast_to(x.shape)

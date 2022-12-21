@@ -151,8 +151,8 @@ class Value:
             return self.cached_data
         # note: data implicitly calls realized cached data
         self.cached_data = self.op.compute(
-            *[x.realize_cached_data() for x in self.inputs]
-        )
+            *[x.realize_cached_data().astype(array_api.float32) for x in self.inputs]
+        ).astype(array_api.float32)
         self.cached_data
         return self.cached_data
 

@@ -87,7 +87,7 @@ class AddScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a: NDArray):
-        return a + self.scalar
+        return a + array_api.float32(self.scalar)
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         return out_grad
@@ -115,7 +115,7 @@ class MulScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a: NDArray):
-        return a * self.scalar
+        return a * array_api.float32(self.scalar)
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         return (out_grad * self.scalar,)
@@ -128,11 +128,11 @@ def mul_scalar(a, scalar):
 class PowerScalar(TensorOp):
     """Op raise a tensor to an (integer) power."""
 
-    def __init__(self, scalar: int):
+    def __init__(self, scalar):
         self.scalar = scalar
 
     def compute(self, a: NDArray) -> NDArray:
-        return a ** self.scalar
+        return a ** array_api.float32(self.scalar)
 
     def gradient(self, out_grad, node):
         # TODO: self.scaler == 0, and out_grad should appear in the left or right
@@ -164,7 +164,7 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        return a / self.scalar
+        return a / array_api.float32(self.scalar)
 
     def gradient(self, out_grad, node):
         return out_grad / self.scalar
