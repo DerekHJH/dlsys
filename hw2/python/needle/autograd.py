@@ -364,10 +364,7 @@ class Tensor(Value):
             return needle.ops.MulScalar(other)(self)
 
     def __pow__(self, other):
-        if isinstance(other, int):
-            return needle.ops.PowerScalar(other)(self)
-        else:
-            raise NotImplementedError()
+        return needle.ops.PowerScalar(other)(self)
 
     def __sub__(self, other):
         if isinstance(other, Tensor):

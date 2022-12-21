@@ -113,9 +113,10 @@ class Linear(Module):
 
 class Flatten(Module):
     def forward(self, X):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        prod = 1
+        for i in range(1, len(X.shape)):
+            prod *= X.shape[i]
+        return X.reshape((X.shape[0], prod))
 
 
 class ReLU(Module):
@@ -151,34 +152,44 @@ class SoftmaxLoss(Module):
 
 class BatchNorm1d(Module):
     def __init__(self, dim, eps=1e-5, momentum=0.1, device=None, dtype="float32"):
+        
         super().__init__()
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        
 
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        pass
 
 
 class LayerNorm1d(Module):
     def __init__(self, dim, eps=1e-5, device=None, dtype="float32"):
+        """
+        $y = w \circ \frac{x_i - \textbf{E}[x]}{((\textbf{Var}[x]+\epsilon)^{1/2})} + b$
+
+        where $\textbf{E}[x]$ denotes the empirical mean of the inputs, 
+        $\textbf{Var}[x]$ denotes their empirical variance (not that here we are using the "unbiased" 
+        estimate of the variance, i.e., dividing by $N$ rather than by $N-1$), 
+        and $w$ and $b$ denote learnable scalar weights and biases respectively.  
+        Note you can assume the input to this layer is a 2D tensor, 
+        with batches in the first dimension and features on the second.
+        Args:
+            dim: number of channels
+            eps: a value added to the denominator for numerical stability.
+        """
         super().__init__()
         self.dim = dim
         self.eps = eps
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = init.ones(dim, requires_grad=True) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = init.zeros(dim, requires_grad=True) # the learnable bias of shape `dim`, elements initialized to 0.
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        shape = (x.shape[0], 1)
+        Ex = (ops.summation(x, axes = 1) / self.dim).reshape(shape).broadcast_to(x.shape)
+        Varx = (ops.summation((x - Ex) ** 2, axes = 1) / self.dim).reshape(shape).broadcast_to(x.shape)
+        return self.weight.broadcast_to(x.shape) * (x - Ex) / (Varx + self.eps) ** 0.5 + self.bias.broadcast_to(x.shape)
 
 
 class Dropout(Module):
