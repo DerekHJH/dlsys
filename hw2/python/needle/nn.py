@@ -162,19 +162,19 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        self.weight = Parameter(init.ones(dim, requires_grad=True)) # the learnable weights of size `dim`, elements initialized to 1
-        self.bias = Parameter(init.zeros(dim, requires_grad=True)) # the learnable bias of shape `dim`, elements initialized to 0.
-        self.running_mean = init.zeros(dim, requires_grad=True) # the running mean used at evaluation time, elements initialized to 0.
-        self.running_var = init.ones(dim, requires_grad=True) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
+        self.weight = Parameter(init.ones(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable bias of shape `dim`, elements initialized to 0.
+        self.running_mean = init.zeros(dim, requires_grad=True, device=device, dtype=dtype) # the running mean used at evaluation time, elements initialized to 0.
+        self.running_var = init.ones(dim, requires_grad=True, device=device, dtype=dtype) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
 
     def forward(self, x: Tensor) -> Tensor:
-        Ex = ops.summation(x, axes = 0) / x.shape[0]
-        self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * Ex
-        Ex = Ex.reshape((1, x.shape[1])).broadcast_to(x.shape)
-        Varx = ops.summation((x - Ex) ** 2, axes = 0) / x.shape[0]
-        self.running_var = (1 - self.momentum) * self.running_var + self.momentum * Varx
-        Varx = Varx.reshape((1, x.shape[1])).broadcast_to(x.shape)
         if self.training:
+            Ex = ops.summation(x, axes = 0) / x.shape[0]
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * Ex
+            Ex = Ex.reshape((1, x.shape[1])).broadcast_to(x.shape)
+            Varx = ops.summation((x - Ex) ** 2, axes = 0) / x.shape[0]
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * Varx
+            Varx = Varx.reshape((1, x.shape[1])).broadcast_to(x.shape)
             return self.weight.broadcast_to(x.shape) * (x - Ex) / (Varx + self.eps) ** 0.5 + self.bias.broadcast_to(x.shape)
         else:
             return (x - self.running_mean) / (self.running_var + self.eps) ** 0.5
@@ -199,8 +199,8 @@ class LayerNorm1d(Module):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        self.weight = Parameter(init.ones(dim, requires_grad=True)) # the learnable weights of size `dim`, elements initialized to 1
-        self.bias = Parameter(init.zeros(dim, requires_grad=True)) # the learnable bias of shape `dim`, elements initialized to 0.
+        self.weight = Parameter(init.ones(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable weights of size `dim`, elements initialized to 1
+        self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable bias of shape `dim`, elements initialized to 0.
 
     def forward(self, x: Tensor) -> Tensor:
         Ex = (ops.summation(x, axes = 1) / self.dim).reshape((x.shape[0], 1)).broadcast_to(x.shape)
@@ -219,8 +219,8 @@ class Dropout(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         if self.training:
-            one_zero_matrix = Tensor(1 - np.random.binomial(1, self.p, x.shape))
-            x = x / (1 - self.p) * one_zero_matrix
+            mask = init.randb(*x.shape, p = (1 - self.p), dtype = "float32")
+            x = x / (1 - self.p) * mask
         return x
 
 
