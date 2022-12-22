@@ -164,8 +164,8 @@ class BatchNorm1d(Module):
         self.momentum = momentum
         self.weight = Parameter(init.ones(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable weights of size `dim`, elements initialized to 1
         self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device, dtype=dtype)) # the learnable bias of shape `dim`, elements initialized to 0.
-        self.running_mean = init.zeros(dim, requires_grad=True, device=device, dtype=dtype) # the running mean used at evaluation time, elements initialized to 0.
-        self.running_var = init.ones(dim, requires_grad=True, device=device, dtype=dtype) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
+        self.running_mean = init.zeros(dim, device=device, dtype=dtype) # the running mean used at evaluation time, elements initialized to 0.
+        self.running_var = init.ones(dim, device=device, dtype=dtype) # the running (unbiased) variance used at evaluation time, elements initialized to 1. 
 
     def forward(self, x: Tensor) -> Tensor:
         if self.training:
